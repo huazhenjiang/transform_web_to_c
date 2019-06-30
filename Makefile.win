@@ -1,0 +1,43 @@
+# Project: transform_web_to_c
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = transform_web_to_c.o blank_html.o bootstrap_min_css.o bootstrap_min_js.o bootstrap_slider_min_css.o bootstrap_slider_min_js.o
+LINKOBJ  = transform_web_to_c.o blank_html.o bootstrap_min_css.o bootstrap_min_js.o bootstrap_slider_min_css.o bootstrap_slider_min_js.o
+LIBS     = -L"E:/DevCppPortable/MinGW64/lib" -L"E:/DevCppPortable/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc
+INCS     = -I"E:/DevCppPortable/MinGW64/include" -I"E:/DevCppPortable/MinGW64/x86_64-w64-mingw32/include" -I"E:/DevCppPortable/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
+CXXINCS  = -I"E:/DevCppPortable/MinGW64/include" -I"E:/DevCppPortable/MinGW64/x86_64-w64-mingw32/include" -I"E:/DevCppPortable/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"E:/DevCppPortable/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
+BIN      = transform_web_to_c.exe
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) 
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+transform_web_to_c.o: transform_web_to_c.c
+	$(CC) -c transform_web_to_c.c -o transform_web_to_c.o $(CFLAGS)
+
+blank_html.o: blank_html.c
+	$(CC) -c blank_html.c -o blank_html.o $(CFLAGS)
+
+bootstrap_min_css.o: bootstrap_min_css.c
+	$(CC) -c bootstrap_min_css.c -o bootstrap_min_css.o $(CFLAGS)
+
+bootstrap_min_js.o: bootstrap_min_js.c
+	$(CC) -c bootstrap_min_js.c -o bootstrap_min_js.o $(CFLAGS)
+
+bootstrap_slider_min_css.o: bootstrap_slider_min_css.c
+	$(CC) -c bootstrap_slider_min_css.c -o bootstrap_slider_min_css.o $(CFLAGS)
+
+bootstrap_slider_min_js.o: bootstrap_slider_min_js.c
+	$(CC) -c bootstrap_slider_min_js.c -o bootstrap_slider_min_js.o $(CFLAGS)

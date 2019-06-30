@@ -1,0 +1,1 @@
+char blank_html[]={};
