@@ -130,6 +130,12 @@ typedef struct _fname_arrayname_element_ {
 	//char ptrname[128];
 }fname_arrayname_element;
 
+unsigned int file_count=0;
+fname_arrayname_element *mapping_table;
+char input_file_pwd[128]={0};
+
+
+#ifdef  _test_struct_init_
 typedef struct table{
 	char *filename;
 	char *arrayname;
@@ -146,9 +152,6 @@ stringweb_h_table stb[]={
 		{NULL, NULL, 0, NULL},
 };
 
-unsigned int file_count=0;
-fname_arrayname_element *mapping_table;
-
 void test_struct_init(){
 	int i;
 	
@@ -162,6 +165,7 @@ void test_struct_init(){
 	} 
 	
 }
+#endif
 
 int getallfiles(char *folder_path){
 
@@ -188,7 +192,10 @@ int getallfiles(char *folder_path){
 	
 	strcpy( filter, "*.*" );
 	
-	_chdir( sdir );
+	if(_chdir( sdir ) !=0 ){
+		printf("\r\n Enter Folder failed.");
+		return -1;
+	}
 	hFile = _findfirst(filter, &c_file);
 	if( hFile!=-1 )
 	{
@@ -214,7 +221,7 @@ int getallfiles(char *folder_path){
 	mapping_table = (fname_arrayname_element *)malloc( file_count * sizeof(fname_arrayname_element));
 	if( mapping_table == NULL ) {
 		printf("Error: unable to allocate required memory\n");
-		return 1;
+		return -1;
 	}	
  
  	memset(mapping_table, 0, file_count * sizeof(fname_arrayname_element));  //init struct '\0'
@@ -245,8 +252,12 @@ int getallfiles(char *folder_path){
 	    }
 		while( _findnext( hFile, &c_file )==0 );	
 	}
-	//printf("\r\ncurrent working directory: %s\n", getcwd(NULL, NULL));
-	_chdir( ".." ); //back to up folder
+	printf("\r\nInput files directory: %s\n", getcwd(NULL, NULL));
+	
+	memset(input_file_pwd, 0, sizeof(input_file_pwd));
+	getcwd(input_file_pwd, sizeof(input_file_pwd));
+
+	//_chdir( ".." ); //back to up folder
 	//printf("\r\ncurrent working directory: %s\n", getcwd(NULL, NULL));
 	for(i=0;i<index;i++){
 		printf("\r\n%d: %s, %s",i,mapping_table[i].filename, mapping_table[i].arrayname);
@@ -259,17 +270,17 @@ int getallfiles(char *folder_path){
 
 //example E:\code\auto_transfer$ auto_transfer E:\\code\\DevC\\auto_transfer\\css\\switch.css
 int main (int argc, char *argv[]){
-	//char test_str[]={0x66,0x55};
+	
 	char ch=0,ch2=0;
 	unsigned long i=0,ch_length;
-	//unsigned long ch_length[];
+	
 	unsigned long index=0,count=0;
 	unsigned long size_total=0;
 	unsigned char ten=0, one=0, sum=0;
 	
 	char filename[128]={0}, *head, *ptr;
 	char arrayname[128]={0};
-	//char ptr_of_arrayname[128]={0};	
+	
 	const char cmp = '.';
 
 	//char *string_long="750168";	
@@ -280,16 +291,20 @@ int main (int argc, char *argv[]){
     //char fname[128];
     //char ext[16];
 
-	char file_full_path[256]={0};
+	
 	char fname[128];
-
-	//char pwd_path[128]={0}, output_folder[128]={0};
+	char input_file_full_path[256]={0};
+	char pwd_path[128]={0}, output_folder[128]={0};
 	
 	FILE *fp_in, *fp_out, *fp_stringweb_h;
 
+
+
 	memset(filename,0,sizeof(filename));
 	memset(arrayname,0,sizeof(arrayname));
-	//memset(ptr_of_arrayname,0,sizeof(ptr_of_arrayname));
+	getcwd(pwd_path, sizeof(pwd_path));
+	printf("\r\nPWD_path=%s\n", pwd_path);	
+
 	
 	if(argc >2){
 		printf("\r\n%s, %s",argv[0],argv[1]);
@@ -297,8 +312,15 @@ int main (int argc, char *argv[]){
 	}
 
 //get all files	
-	getallfiles(argv[1]);
-	//printf("\r\ncurrent working directory: %s\n", getcwd(NULL, NULL));
+	if(getallfiles(argv[1]) !=0){
+		printf("\r\n Enter Folder failed.");
+		return -1;		
+	}  
+	
+	
+	_chdir( &(pwd_path[0]) );	
+	//printf("\r\nCurrent working directory: %s\n", getcwd(NULL, NULL));
+	
 //make output folder	
 	if((access( "./out", 0 )) ==0){
 		printf( "\r\n%s exists ", "./out");
@@ -318,7 +340,7 @@ int main (int argc, char *argv[]){
 //enter ./out
 //.c		
     if(chdir("./out") ==0)
-    	printf("\r\ncurrent working directory: %s\n", getcwd(NULL, NULL));
+    	printf("\r\nOut directory: %s\n", getcwd(NULL, NULL));
     else
     	printf("\r\ncan not enter /out");	
 	
@@ -326,15 +348,15 @@ int main (int argc, char *argv[]){
 	for(i=0; i<file_count ; i++){
 		ch_length =0;
 		
-		memset(file_full_path, 0, sizeof(file_full_path));
-		strncpy(file_full_path, argv[1], strlen(argv[1]));
-		strcat(file_full_path, "\\");
-		strcat(file_full_path, mapping_table[i].filename);
-		printf("\r\n%d: %s",i,file_full_path);	
+		memset(input_file_full_path,0,sizeof(input_file_full_path));
+		strcpy(input_file_full_path, input_file_pwd);
+		strcat(input_file_full_path, "\\");
+		strcat(input_file_full_path, mapping_table[i].filename);
+		printf("\r\n%d: %s",i,input_file_full_path);	
 		
-		fp_in=fopen(file_full_path,"rb");
+		fp_in=fopen(input_file_full_path,"rb");
 		if( NULL == fp_in ){
-	        printf( "\r\n%s open failure", file_full_path );
+	        printf( "\r\n%s open failure", input_file_full_path );
 	        return -1;
 	    }
 		
@@ -347,8 +369,7 @@ int main (int argc, char *argv[]){
 	        printf( "\r\n%s open failure", fname );
 	        return -1;
 	    }
-		//char *index.html.c="3c6874...";	
-		//fprintf(fp_out,"char *%s=\"", arrayname);
+
 		fprintf(fp_out,"char %s[]={", mapping_table[i].arrayname);	
 		while( (ch=fgetc(fp_in)) != EOF){	
 			fprintf(fp_out,"0x%02x, ",ch);
@@ -356,17 +377,8 @@ int main (int argc, char *argv[]){
 		}
 		
 
-		//char *ltoa(long value,char *string,int radix);
-		//ltoa(ch_length, mapping_table[i].size, 10);
 		mapping_table[i].size_t = ch_length;
 		fprintf(fp_out,"};\n");
-
-
-		//memset(ptr_of_arrayname,0,sizeof(ptr_of_arrayname));
-		//strncpy(ptr_of_arrayname,mapping_table[i].arrayname,strlen(mapping_table[i].arrayname));
-		//strcat(ptr_of_arrayname,"_ptr");
-		//strncpy(mapping_table[i].ptrname,ptr_of_arrayname,strlen(ptr_of_arrayname));
-		//fprintf(fp_out,"char *%s=%s;\n",ptr_of_arrayname,mapping_table[i].arrayname);		
 
 	
 		
@@ -414,111 +426,13 @@ int main (int argc, char *argv[]){
 
 	fclose(fp_stringweb_h);		
 
-	//for(i=0; i<6 ; i++){
-	//	printf("\r\n%s ", stringweb_table[i]);
-	//}
-	
+
+#ifdef _test_struct_init_	
 	//test_struct_init();
-	
-/*
-   		FILE *fp_3rd;
-		int fread_byte=0;
-		unsigned char buf[512]={0};   		
-   		unsigned long total_len=0;
-   		
-   fp_in=fopen("E:\\code\\DevC\\transform_web_to_c\\index.html","rb");		
-   fseek(fp_in, 0, SEEK_SET);
-   fp_3rd = fopen("../fread.txt","w+");
- 		while ((fread_byte = fread(buf, sizeof(char), 512, fp_in)) > 0) {
-			for (i = 0; i < fread_byte; i++) {
-				//*checksum += buf[i];
-				fprintf(fp_3rd,"0x%02x, ",buf[i]);
-				
-			}
-			//memcpy(big_buff_ptr, buf, fread_byte);
-			total_len += fread_byte;
-			//big_buff_ptr = &big_buf[total_len];
-		}
-		printf("\r\ntotal_len:%lld",total_len); 
-	fclose(fp_3rd);	
-	fclose(fp_in);
-*/		
+#endif	
+		
 return 0;
-/*	
-	fp_stringweb_h=fopen("stringweb.h","w+");
-	
-//get filename and trans '.' , '-' to '_' , add '.c' at final
-    _splitpath( argv[1], drive, dir, fname, ext );
 
-    printf("\r\nDrive:%s\n file name: %s\n file type: %s\n",drive,fname,ext);
-	strcat(fname,ext);
-    printf("File name with extension :%s\n",fname);			
-
-	head=str_replace(fname,".","_");
-	head=str_replace(head,"-","_");
-
-	//strncpy(filename, argv[1], strlen(argv[1]));
-	strncpy(filename,head,strlen(head));
-	strcat(filename,".c");
-	printf("\r\nOutput_filename: %s",filename);
-	
-//get arrayname
-	strncpy(arrayname, head , strlen(head));
-	printf("\r\nArrayname:%s",arrayname);	
-	
-//get pwd
-	//getcwd(pwd_path, sizeof(pwd_path));
-	//printf("\r\nPWD_path=%s\n", pwd_path);
-//make out folder
-	//strncpy(output_folder, pwd_path, strlen(pwd_path));	
-	//strcat(output_folder,"\\out");
-	//printf("\r\nOutput_folder=%s\n", output_folder);	
-	
-	if((access( "./out", 0 )) ==0){
-		printf( "\r\n%s exists ", "./out");
-	}
-	else{
-		printf( "\r\ncan not find %s , create it", "./out");
-		//if (mkdir("./out",S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0){ 
-		if (mkdir("./out")){
-	        printf("\r\ncan not create out folder, Error:%d\n", __LINE__);
-			//return -1;
-		}		
-	}
-	//if( (access( ACCESS.C, 2 )) == 0 ){
-	//	printf( "File ACCESS.C has write permission " );
-	//}		
-
-	fp_in=fopen(argv[1],"r");
-	if( NULL == fp_in ){
-        printf( "\r\n%s open failure",argv[1] );
-        return -1;
-    }
-
-    if(chdir("./out") ==0)
-    	printf("\r\ncurrent working directory: %s\n", getcwd(NULL, NULL));
-    else
-    	printf("\r\ncan not enter /out");
-				
-	fp_out=fopen(filename,"w+");
-	if( NULL == fp_out ){
-        printf( "\r\n%s open failure",filename );
-        return -1;
-    }
-	//char *index.html.c="3c6874...";	
-	//fprintf(fp_out,"char *%s=\"", arrayname);
-	fprintf(fp_out,"char *%s={", arrayname);	
-	while( (ch=fgetc(fp_in)) != EOF){	
-		fprintf(fp_out,"0x%02x, ",ch);				
-	}
-	//fprintf(fp_out,"\";");
-	fprintf(fp_out,"};");
-
-	fclose(fp_in);
-	fclose(fp_out);
-	
-	return 0;	
-*/
 	
 }	
 

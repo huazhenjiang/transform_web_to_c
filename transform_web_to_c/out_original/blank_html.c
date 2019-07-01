@@ -1,1 +1,0 @@
-char blank_html[]={};
